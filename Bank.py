@@ -186,15 +186,31 @@ class Konto:
         self.buchungen = []  # Liste von Buchungen (Betrag, Währung, Verwendungszweck)
 
     def __str__(self):
+        """
+        Gibt eine formatierte Zeichenfolge des Kontos zurück.
+        
+        :return: str: Der formatierte String
+        """
         return f"{self.inhaber} / {self.iban} / {self.saldo(formatiert=True)}" # Formatierter String    
 
     # JSON Repräsentation
     def __repr__(self):
+        """
+        Gibt eine JSON-Repräsentation des Kontos zurück.
+        
+        :return: str: Der JSON-String
+        """
         output = {"inhaber": self.inhaber, "iban": self.iban, "buchungen": self.buchungen}
         return json.dumps(output, indent=4)
 
     # Interpreation von JSON
     def eval(json_string):
+        """
+        Interpretiert einen JSON-String als Konto.
+        
+        :param json_string: str: Der JSON-String
+        :return: Konto: Das Konto-Objekt
+        """
         konto = Konto("", "")
         data = json.loads(json_string)
         konto.inhaber = data["inhaber"]
