@@ -186,7 +186,21 @@ class Konto:
         self.buchungen = []  # Liste von Buchungen (Betrag, Währung, Verwendungszweck)
 
     def __str__(self):
-        return f"{self.inhaber} / {self.iban} / {self.saldo(formatiert=True)}" # Formatierter String
+        return f"{self.inhaber} / {self.iban} / {self.saldo(formatiert=True)}" # Formatierter String    
+
+    # JSON Repräsentation
+    def __repr__(self):
+        output = {"inhaber": self.inhaber, "iban": self.iban, "buchungen": self.buchungen}
+        return json.dumps(output, indent=4)
+
+    # Interpreation von JSON
+    def eval(json_string):
+        konto = Konto("", "")
+        data = json.loads(json_string)
+        konto.inhaber = data["inhaber"]
+        konto.iban = data["iban"]
+        konto.buchungen = data["buchungen"]
+        return konto
 
     def buchen(self, betrag, verwendungszweck):
         """
@@ -367,17 +381,36 @@ class MultiKonto(Konto):
 # endregion
 
 
+# region Sparkonto
+class Sparkonto(Konto):
+    def __init__(self, inhaber, iban=""):
+        super().__init__(inhaber, iban)
+        self.zinssatz = 0.0325  # Zinssatz in Prozent
+
+    def zinsen_berechnen(self):
+        """
+        Berechnet die Zinsen für das Sparkonto und bucht sie auf das Konto.
+
+        :return: None
+        """
+        zinsen = self.saldo() * self.zinssatz
+        self.buchungen.append((zinsen, "EUR", "Zinsen" + f" ({self.zinssatz * 100:.2f} %)"))
+# endregion
+
+
 # region Anwendungsbeispiel
 if __name__ == "__main__":
-    # Drei verschiedene Konten erstellen
-    konto1 = Konto("Arasp der Allerechte")
-    konto2 = MultiKonto("Malte der Mächtige")
-    konto3 = MultiKonto("Herr Grünke der Großartige")
+    # Vier verschiedene Konten erstellen
+    konto1 = Konto("Arasp der Krasse")
+    konto2 = MultiKonto("Malte der Lustige")
+    konto3 = MultiKonto("Herr Grünke der Ehrenmann")
+    konto4 = Sparkonto("Erik der coole Mann")
 
     # Eröffnungsbuchungen
     konto1.buchen(1000, "Eröffnungsbuchung")
     konto2.buchen(1000, "Eröffnungsbuchung")
     konto3.buchen(1000, "Eröffnungsbuchung")
+    konto4.buchen(1000, "Eröffnungsbuchung")
 
     # Überweisungen durchführen
     konto1.ueberweisen(konto2, 100, "Schutzgeld")
@@ -392,6 +425,9 @@ if __name__ == "__main__":
     konto2.waehrungen_verrechnen()
     konto3.waehrungen_verrechnen()
 
+    # Zinsen berechnen
+    konto4.zinsen_berechnen()
+
     # Kontostände und Buchungen anzeigen
     konto1.buchungen_anzeigen()
     print(f"=    {konto1.saldo(formatiert=True)}", end="\n\n")
@@ -402,9 +438,18 @@ if __name__ == "__main__":
     konto3.buchungen_anzeigen()
     print(f"=    {konto3.saldo(formatiert=True)}", end="\n\n")
 
-    konto4 = MultiKonto("Testkonto")
-    print(konto4)
+    konto4.buchungen_anzeigen()
+    print(f"=    {konto4.saldo(formatiert=True)}", end="\n\n")
 
+    # Konten als JSON speichern
+    print(konto1.__repr__())
+    
+    # Klonen von konto1 mithilfe von eval (JSON)
+    konto5 = Konto.eval(konto1.__repr__())
+
+    # Ausgabe der Konten
+    print(konto1)
+    print(konto5)
 
 
 # endregion
