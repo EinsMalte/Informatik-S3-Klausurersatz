@@ -97,6 +97,16 @@ class Konto:
         self.buchungen = []  
     def __str__(self):
         return f"{self.inhaber} / {self.iban} / {self.saldo(formatiert=True)}" 
+    def __repr__(self):
+        output = {"inhaber": self.inhaber, "iban": self.iban, "buchungen": self.buchungen}
+        return json.dumps(output, indent=4)
+    def eval(json_string):
+        konto = Konto("", "")
+        data = json.loads(json_string)
+        konto.inhaber = data["inhaber"]
+        konto.iban = data["iban"]
+        konto.buchungen = data["buchungen"]
+        return konto
     def buchen(self, betrag, verwendungszweck):
         betrag, waehrung = waehrung_interpretieren(betrag)
         if waehrung != "EUR":
@@ -181,13 +191,22 @@ class MultiKonto(Konto):
             saldo = self.saldo(waehrung)
             if saldo != 0:
                 self.umrechnen(saldo, waehrung, "EUR", f"Verrechnung von {waehrung_formatieren(saldo, waehrung)}")
+class Sparkonto(Konto):
+    def __init__(self, inhaber, iban=""):
+        super().__init__(inhaber, iban)
+        self.zinssatz = 0.0325  
+    def zinsen_berechnen(self):
+        zinsen = self.saldo() * self.zinssatz
+        self.buchungen.append((zinsen, "EUR", "Zinsen" + f" ({self.zinssatz * 100:.2f} %)"))
 if __name__ == "__main__":
-    konto1 = Konto("Arasp der Allerechte")
-    konto2 = MultiKonto("Malte der Mächtige")
-    konto3 = MultiKonto("Herr Grünke der Großartige")
+    konto1 = Konto("Arasp der Krasse")
+    konto2 = MultiKonto("Malte der Lustige")
+    konto3 = MultiKonto("Herr Grünke der Ehrenmann")
+    konto4 = Sparkonto("Erik der coole Mann")
     konto1.buchen(1000, "Eröffnungsbuchung")
     konto2.buchen(1000, "Eröffnungsbuchung")
     konto3.buchen(1000, "Eröffnungsbuchung")
+    konto4.buchen(1000, "Eröffnungsbuchung")
     konto1.ueberweisen(konto2, 100, "Schutzgeld")
     konto2.ueberweisen(konto3, "500 $", "Alles für die 15 Punkte")
     konto3.ueberweisen(konto1, "1000 JPY", "Döner kostet einfach zu viel")
@@ -195,11 +214,16 @@ if __name__ == "__main__":
     konto2.umrechnen(100, "EUR", "USD")
     konto2.waehrungen_verrechnen()
     konto3.waehrungen_verrechnen()
+    konto4.zinsen_berechnen()
     konto1.buchungen_anzeigen()
     print(f"=    {konto1.saldo(formatiert=True)}", end="\n\n")
     konto2.buchungen_anzeigen()
     print(f"=    {konto2.saldo(formatiert=True)}", end="\n\n")
     konto3.buchungen_anzeigen()
     print(f"=    {konto3.saldo(formatiert=True)}", end="\n\n")
-    konto4 = MultiKonto("Testkonto")
-    print(konto4)
+    konto4.buchungen_anzeigen()
+    print(f"=    {konto4.saldo(formatiert=True)}", end="\n\n")
+    print(konto1.__repr__())
+    konto5 = Konto.eval(konto1.__repr__())
+    print(konto1)
+    print(konto5)
