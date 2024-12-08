@@ -8,10 +8,14 @@ import time
 import re
 
 # .env Datei laden
-load_dotenv()
-API_KEY = os.getenv("API_KEY")
-if not API_KEY:
-    raise ValueError("Kein API_KEY gefunden")
+API_KEY = ""
+try:
+    load_dotenv()
+    API_KEY = os.getenv("API_KEY")
+    if not API_KEY:
+        raise ValueError("Kein API_KEY gefunden")
+except:
+    print("Fehler beim Laden der .env Datei")
 
 
 # region Helferfunktionen
