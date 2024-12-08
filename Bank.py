@@ -50,6 +50,7 @@ def kurse_laden(feedback=False):
     Versucht, die Wechselkurse aus wechselkurse.json zu laden. Falls die Datei nicht existiert oder älter
     als 1 Stunde ist, werden die Kurse von der API abgerufen.
 
+    :param feedback: bool: Gibt an, ob Feedback ausgegeben werden soll
     :return: dict: Die Wechselkurse.
     """
     # Überprüfen, ob eine cache.json existiert
